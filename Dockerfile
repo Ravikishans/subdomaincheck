@@ -1,18 +1,25 @@
+# Use an official Debian runtime as a parent image
 FROM debian:bookworm-slim
 
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Install Python and pip
+# Install any needed packages
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip && \
+    apt-get install -y python3 python3-pip python3-venv && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the current directory contents into the container at /app
 COPY . .
 
-# Install any needed packages specified in requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Create a virtual environment
+RUN python3 -m venv venv
+
+# Install any needed packages specified in requirements.txt using the virtual environment
+RUN ./venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Make the virtual environment's Python the default
+ENV PATH="/app/venv/bin:$PATH"
 
 # Run subdomaincheck.py when the container launches
-CMD ["python3", "subdomaincheck.py"]
+CMD ["python", "subdomaincheck.py"]
